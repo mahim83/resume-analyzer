@@ -1,164 +1,222 @@
-# Resume Analyzer
+<div align="center">
 
-Upload a resume (PDF or DOCX) and get back the technical & soft skills it
-contains, the named entities in it (people, organizations, dates), and — if you
-paste a job description — a **semantic match score** plus the required skills
-your resume is missing. A small rule-based layer adds quick writing feedback.
+# 📄 Resume Analyzer
 
-The point of the project is the **NLP pipeline**: skills are pulled with a
-spaCy `PhraseMatcher`, entities with spaCy NER, and job-description matching
-uses sentence-transformer embeddings with cosine similarity.
+**Extract skills & entities from a resume, and semantically match it against any job description — powered by NLP.**
 
-## Architecture
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://resume-analyzer-nfvpuej9h5mxtkx5d6qoqn.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![spaCy](https://img.shields.io/badge/spaCy-NLP-09A3D5?logo=spacy&logoColor=white)](https://spacy.io/)
+[![Tests](https://img.shields.io/badge/tests-27_passing-brightgreen)](tests/)
+
+</div>
+
+---
+
+## Overview
+
+**Resume Analyzer** reads a resume (PDF or DOCX), uses **Natural Language Processing** to pull out the candidate's skills and key entities, and — given a job description — computes a **semantic match score** and lists the required skills the resume is missing, plus quick rule-based writing feedback.
+
+It's the core idea behind an Applicant Tracking System (ATS), but **explainable**: instead of opaque keyword counting, it uses token-level phrase matching for skills and sentence embeddings for *meaning-based* job matching.
+
+> 🔗 **Live demo:** https://resume-analyzer-nfvpuej9h5mxtkx5d6qoqn.streamlit.app/
+
+---
+
+## ✨ Features
+
+- 📄 **PDF & DOCX parsing** — extracts clean text from either format.
+- 🧠 **Skill extraction** — matches ~330 curated skills (languages, frameworks, databases, cloud, DevOps, ML, and soft skills) with a case-insensitive, multi-word phrase matcher.
+- 🏷️ **Entity recognition** — pulls out people, organizations, and dates via spaCy NER.
+- 🎯 **Semantic job matching** — cosine similarity over sentence embeddings gives a 0–100 match score that captures *meaning*, not just keyword overlap.
+- ➖ **Missing-skills detection** — shows which skills the job asks for that the resume lacks.
+- 💡 **Writing suggestions** — flags a too-short resume, missing metrics, and weak passive phrasing.
+- ⚡ **REST API + Web UI** — a documented FastAPI backend *and* an interactive Streamlit frontend.
+
+---
+
+## 🎯 How the NLP works
+
+| Task | Technique | Why this choice |
+|---|---|---|
+| **Skills** | spaCy **`PhraseMatcher`** (`attr="LOWER"`) | Token-level & case-insensitive, so multi-word skills like *"machine learning"* match cleanly — no brittle regex boundaries, and it scales to hundreds of terms. |
+| **Entities** | spaCy **NER** (PERSON / ORG / DATE) | A pretrained statistical model generalizes to names & companies a keyword list never could. |
+| **Job match** | **sentence-transformers** (`all-MiniLM-L6-v2`) + cosine similarity | Embeddings capture *semantic* similarity — a resume that says "built REST services in Python" matches a JD wanting "backend API development" even without shared words. MiniLM is small (~80 MB) yet strong. |
+
+> ⚙️ **Performance detail:** ML models are loaded **once** (spaCy at import, the transformer lazily on first use) — never per request — so responses stay fast.
+
+---
+
+## 🏗️ Architecture
 
 ```
-Streamlit UI  ──HTTP──▶  FastAPI /analyze
-                            │
-                            ├─ parser.py       PDF/DOCX → text (pdfplumber / python-docx)
-                            ├─ skills.py       spaCy PhraseMatcher (skills) + NER (entities)
-                            ├─ matcher.py      sentence-transformers embeddings → cosine similarity
-                            ├─ suggestions.py  rule-based writing feedback
-                            └─ models.py       Pydantic response  →  JSON
+        User (browser)
+             │  uploads resume + pastes job description
+             ▼
+   ┌────────────────────┐        ┌─────────────────────┐
+   │   Streamlit UI     │   or   │   Streamlit UI      │
+   │ (in-process mode)  │        │ → FastAPI over HTTP  │
+   └────────────────────┘        └─────────────────────┘
+             │
+             ▼
+   ┌───────────────────────────────────────────────────┐
+   │                 NLP Core  (app/)                   │
+   │  parser.py      PDF/DOCX  →  text                  │
+   │  skills.py      PhraseMatcher skills + NER entities│
+   │  matcher.py     embeddings → match score + missing │
+   │  suggestions.py rule-based feedback                │
+   │  models.py      Pydantic schema → JSON             │
+   └───────────────────────────────────────────────────┘
 ```
 
-## Tech choices (and why)
+The same NLP core is exposed **two ways**: a **FastAPI REST API** (`/analyze` + Swagger at `/docs`) and a **standalone Streamlit app** that calls it in-process.
 
-- **spaCy `PhraseMatcher` over regex** for skills — it matches at the token
-  level and is case-insensitive (`attr="LOWER"`), so multi-word skills like
-  *machine learning* or *spring boot* match cleanly without brittle regex
-  boundaries, and matching stays fast even with a few hundred terms.
-- **spaCy NER** for people / orgs / dates — a pretrained statistical model
-  generalizes to names and companies a keyword list never could.
-- **Cosine similarity over sentence embeddings** for JD matching — this
-  captures *semantic* overlap (a resume saying "built REST services in Python"
-  scores against a JD wanting "backend API development") rather than exact
-  keyword overlap, which pure term matching misses.
-- **`all-MiniLM-L6-v2`** — a ~80MB embedding model; small enough to deploy on a
-  free tier while still producing strong semantic similarity.
-- **Models loaded once at import time**, never per request — model loading is
-  the expensive step; doing it at startup keeps `/analyze` fast and avoids
-  timeouts on constrained hosts.
+---
 
-## API
+## 🧰 Tech Stack
 
-`POST /analyze` (multipart form)
+**Language:** Python 3.11+
+**NLP/ML:** spaCy (`en_core_web_sm`), sentence-transformers (`all-MiniLM-L6-v2`), PyTorch
+**Parsing:** pdfplumber, python-docx
+**Backend:** FastAPI, Uvicorn, Pydantic
+**Frontend:** Streamlit
+**Testing:** pytest
+**Deploy:** Docker · Streamlit Community Cloud · (Render blueprint included)
 
-| field     | type            | required | notes                                  |
-| --------- | --------------- | -------- | -------------------------------------- |
-| `file`    | file            | yes      | `.pdf` or `.docx`                      |
-| `jd_text` | string (form)   | no       | job description to match against       |
+---
 
-Response (`AnalysisResult`):
+## 📡 API Reference
 
+### `POST /analyze`
+Multipart form:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `file` | file | ✅ | Resume as `.pdf` or `.docx` |
+| `jd_text` | string | ❌ | Job description to match against |
+
+**Response** (`AnalysisResult`):
 ```json
 {
   "skills_found": ["python", "fastapi", "docker"],
-  "entities": { "PERSON": ["Jane Doe"], "ORG": ["Acme Corp"], "DATE": ["2021"] },
-  "match_score": 72.4,
-  "missing_skills": ["kubernetes", "graphql"],
+  "entities": { "PERSON": ["Jane Doe"], "ORG": ["Acme Corporation"], "DATE": ["2021"] },
+  "match_score": 70.3,
+  "missing_skills": ["graphql", "redis"],
   "suggestions": ["Consider quantifying achievements with numbers or metrics."]
 }
 ```
 
-- `415` — file is not `.pdf`/`.docx`.
-- `422` — file could not be parsed (empty, image-only, or corrupt).
+**Errors:** `415` (unsupported file type) · `422` (unparseable/empty file).
+Interactive docs auto-generated at **`/docs`**.
 
-Interactive docs are auto-generated at `/docs`.
+---
 
-## Run locally
+## 🛠️ Getting Started (local)
 
 ```bash
+# 1. Clone
+git clone https://github.com/mahim83/resume-analyzer.git
+cd resume-analyzer
+
+# 2. Create a virtual environment
 python -m venv .venv
 # Windows:  .venv\Scripts\activate     |  macOS/Linux:  source .venv/bin/activate
+
+# 3. Install (the spaCy model installs via requirements.txt)
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-
-# Backend
-uvicorn app.main:app --reload            # http://localhost:8000/docs
-
-# Frontend (separate terminal)
-streamlit run frontend/app.py            # http://localhost:8501
 ```
 
-Point the frontend at a remote backend with an env var:
-
+**Run the standalone Streamlit app (simplest):**
 ```bash
-BACKEND_URL="https://your-backend.onrender.com" streamlit run frontend/app.py
+streamlit run streamlit_app.py            # http://localhost:8501
 ```
 
-Quick smoke test:
-
+**Or run the two-tier setup (FastAPI + Streamlit frontend):**
 ```bash
-curl -F "file=@resume.pdf" http://localhost:8000/analyze
-curl -F "file=@resume.pdf" -F "jd_text=We need a Python backend engineer with Docker and AWS." \
+uvicorn app.main:app --reload             # backend  → http://localhost:8000/docs
+streamlit run frontend/app.py             # frontend → http://localhost:8501
+```
+
+**Quick API smoke test:**
+```bash
+curl -F "file=@resume.pdf" \
+     -F "jd_text=Backend engineer with Python, Docker, AWS." \
      http://localhost:8000/analyze
 ```
 
-## Tests
+---
+
+## 🧪 Tests
 
 ```bash
 pip install -r requirements-dev.txt
 pytest
 ```
 
-27 tests cover parsing (PDF/DOCX + error paths), skill/entity extraction, JD
-match scoring, suggestions, and the `/analyze` API (including 415/422 handling).
-Sample resume fixtures live in `tests/fixtures/`.
+**27 tests** cover PDF/DOCX parsing (incl. corrupt/unsupported → 415/422), skill & entity extraction, semantic match scoring, missing-skills detection, all suggestion rules, and the `/analyze` API end-to-end. Sample fixtures live in `tests/fixtures/`.
 
-## Run with Docker
+---
+
+## 🐳 Docker
 
 ```bash
 docker build -t resume-analyzer .
-docker run -p 8000:8000 resume-analyzer     # http://localhost:8000/docs
+docker run -p 8000:8000 resume-analyzer   # http://localhost:8000/docs
 ```
+The image bakes in the sentence-transformer at build time, so startup needs no network and the first request is fast.
 
-The image pre-downloads both models at build time, so the container starts
-without network access and the first request is fast.
+---
 
-## Deploy
+## ☁️ Deployment
 
-There are two deployment modes:
+**Single service (used for the live demo):** `streamlit_app.py` runs the whole pipeline **in-process**, so it deploys as one free app on **Streamlit Community Cloud** — point it at this repo with `streamlit_app.py` as the main file.
 
-**A. Single service (recommended for a free live demo).** `streamlit_app.py`
-runs the whole pipeline **in-process** (no separate backend), so it deploys as
-one app on **Streamlit Community Cloud** (free, ~1GB RAM — enough for the
-sentence-transformer). Point it at this repo with `streamlit_app.py` as the
-main file; the spaCy model installs via `requirements.txt`.
+**Two-tier (microservice):** deploy the FastAPI Docker image on any container host, then the Streamlit frontend with `BACKEND_URL` pointing at it.
 
-**B. Two-tier (microservice).** FastAPI backend + Streamlit frontend as separate
-services:
-- *Backend:* Docker image (`Dockerfile` / `render.yaml`) on any container host.
-  Note the sentence-transformer is memory-heavy — it's lazy-loaded so startup
-  stays light, but the JD-match request needs enough RAM (a 512MB free tier is
-  too small; use a host with ≥1GB, e.g. Hugging Face Spaces).
-- *Frontend:* deploy `frontend/app.py` with `BACKEND_URL` set to the backend URL.
+> 💡 **Memory note:** The transformer is torch-backed and memory-heavy. It's lazy-loaded so startup stays light, but the match step needs a host with **≥ 1 GB RAM** (a 512 MB free tier will OOM). Streamlit Community Cloud (~1 GB) and Hugging Face Spaces (16 GB free) both work.
 
-## Project layout
+---
+
+## 📁 Project Structure
 
 ```
-app/
-  main.py          FastAPI app + /analyze endpoint
-  parser.py        PDF/DOCX text extraction
-  skills.py        skill (PhraseMatcher) + entity (NER) extraction
-  matcher.py       JD matching via sentence-transformers
-  suggestions.py   rule-based feedback
-  models.py        Pydantic response models
-  skills_list.json ~250 skill terms
-frontend/
-  app.py           Streamlit UI (calls the FastAPI backend over HTTP)
-streamlit_app.py   Standalone Streamlit UI (runs the pipeline in-process)
-Dockerfile
-render.yaml
-requirements.txt
+resume-analyzer/
+├── app/
+│   ├── main.py            FastAPI app + /analyze endpoint
+│   ├── parser.py          PDF/DOCX text extraction
+│   ├── skills.py          PhraseMatcher skills + spaCy NER entities
+│   ├── matcher.py         sentence-transformers match score + missing skills
+│   ├── suggestions.py     rule-based writing feedback
+│   ├── models.py          Pydantic response schema
+│   └── skills_list.json   ~330 skill terms
+├── frontend/
+│   └── app.py             Streamlit UI (calls FastAPI over HTTP)
+├── streamlit_app.py       Standalone Streamlit UI (runs the pipeline in-process)
+├── tests/                 27 pytest tests + sample fixtures
+├── Dockerfile
+├── render.yaml
+├── requirements.txt
+└── requirements-dev.txt
 ```
 
-## With more time
+---
 
-- Fine-tune a NER model on labeled resume data (job titles, degrees, sections)
-  instead of the general-purpose pretrained model.
-- Section-aware parsing (split Experience / Education / Skills) so extraction
-  and suggestions can be scoped per section.
-- A labeled evaluation set with precision/recall for skill extraction and
-  match-score calibration, rather than eyeballed spot checks.
-- Expand the skills list into a maintained taxonomy with aliases/synonyms
-  (e.g. "js" ↔ "javascript", "k8s" ↔ "kubernetes").
+## 🔮 Roadmap (with more time)
+
+- 🎯 Fine-tune a **NER model on labeled resume data** (the general model occasionally mislabels tech terms like "Docker" as a PERSON/ORG).
+- 📑 **Section-aware parsing** (Experience / Education / Skills) for more precise, scoped extraction.
+- 📊 A **labeled evaluation set** with precision/recall instead of eyeballed checks.
+- 🗂️ A maintained **skill taxonomy** with synonyms (e.g. "js" ↔ "javascript", "k8s" ↔ "kubernetes").
+
+---
+
+## 📝 License
+
+Released under the **MIT License** — see [`LICENSE`](LICENSE).
+
+<div align="center">
+
+Built with FastAPI, spaCy & sentence-transformers.
+
+</div>
