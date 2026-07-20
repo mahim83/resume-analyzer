@@ -4,7 +4,7 @@
 
 **Extract skills & entities from a resume, and semantically match it against any job description — powered by NLP.**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://resume-analyzer-nfvpuej9h5mxtkx5d6qoqn.streamlit.app/)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://resume-analyzer-mahim.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![spaCy](https://img.shields.io/badge/spaCy-NLP-09A3D5?logo=spacy&logoColor=white)](https://spacy.io/)
@@ -20,7 +20,7 @@
 
 It's the core idea behind an Applicant Tracking System (ATS), but **explainable**: instead of opaque keyword counting, it uses token-level phrase matching for skills and sentence embeddings for *meaning-based* job matching.
 
-> 🔗 **Live demo:** https://resume-analyzer-nfvpuej9h5mxtkx5d6qoqn.streamlit.app/
+> 🔗 **Live demo:** https://resume-analyzer-mahim.streamlit.app/
 
 ---
 
