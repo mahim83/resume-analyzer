@@ -32,41 +32,43 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-      /* Hide default Streamlit chrome for a cleaner demo */
       #MainMenu, footer {visibility: hidden;}
+      .block-container {padding-top: 2.4rem; max-width: 1180px;}
 
-      .hero {
-        background: linear-gradient(120deg, #6366F1 0%, #8B5CF6 55%, #EC4899 100%);
-        padding: 2.1rem 2.4rem; border-radius: 18px; color: #fff;
-        margin-bottom: 1.4rem; box-shadow: 0 10px 30px rgba(99,102,241,0.25);
+      .app-header {border-bottom: 1px solid #E5E7EB; padding-bottom: 1.1rem; margin-bottom: 1.6rem;}
+      .app-header .eyebrow {
+        font-size: .72rem; letter-spacing: .14em; text-transform: uppercase;
+        color: #2563EB; font-weight: 700;
       }
-      .hero h1 {margin: 0; font-size: 2.15rem; font-weight: 800; letter-spacing: -0.5px;}
-      .hero p  {margin: .5rem 0 0; font-size: 1.02rem; opacity: .95; max-width: 720px;}
+      .app-header h1 {font-size: 1.85rem; font-weight: 700; margin: .35rem 0 .3rem; color: #0F172A;}
+      .app-header p  {color: #475569; margin: 0; font-size: 1rem; max-width: 760px;}
 
-      .chip {
-        display: inline-block; padding: 5px 13px; margin: 4px 4px 4px 0;
-        border-radius: 20px; font-size: .84rem; font-weight: 600; line-height: 1.4;
+      .label {
+        font-size: .72rem; letter-spacing: .09em; text-transform: uppercase;
+        color: #64748B; font-weight: 700; margin-bottom: .55rem;
       }
-      .chip-skill   {background:#EAF7EE; color:#1E7B44; border:1px solid #B6E3C6;}
-      .chip-missing {background:#FDECEC; color:#C0322B; border:1px solid #F4B9B5;}
-      .chip-entity  {background:#EEF0FE; color:#4746C9; border:1px solid #C7C9F7;}
-
       .card {
-        background:#fff; border:1px solid #ECEDF5; border-radius:14px;
-        padding:1.1rem 1.25rem; margin-bottom:1rem;
-        box-shadow:0 2px 10px rgba(31,34,51,0.04);
+        border: 1px solid #E5E7EB; border-radius: 10px; background: #fff;
+        padding: 1.15rem 1.3rem; margin-bottom: 1rem;
       }
-      .card h4 {margin:0 0 .6rem; font-size:1.02rem; color:#1F2233;}
-      .muted {color:#8A8FA3; font-size:.9rem;}
+      .muted {color: #94A3B8; font-size: .88rem;}
 
-      .score-wrap {height:14px; background:#EEEFF6; border-radius:10px; overflow:hidden; margin:.35rem 0 .2rem;}
-      .score-bar  {height:100%; border-radius:10px;}
-
-      .stButton>button {
-        border-radius:10px; font-weight:700; padding:.55rem 0;
-        background:linear-gradient(120deg,#6366F1,#8B5CF6); color:#fff; border:0;
+      .tag {
+        display: inline-block; padding: 4px 11px; margin: 0 5px 7px 0;
+        border-radius: 6px; font-size: .82rem; font-weight: 500; border: 1px solid;
       }
-      .stButton>button:hover {filter:brightness(1.05);}
+      .tag-skill   {background:#EFF5FF; color:#1D4ED8; border-color:#D5E3FF;}
+      .tag-missing {background:#FEF2F2; color:#B91C1C; border-color:#FBD3D3;}
+      .tag-entity  {background:#F8FAFC; color:#334155; border-color:#E5E7EB;}
+
+      .meter {height: 8px; background: #F1F5F9; border-radius: 6px; overflow: hidden; margin: .55rem 0 .45rem;}
+      .meter > div {height: 100%; border-radius: 6px;}
+
+      .ent-grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1.2rem;}
+      .ent-h {font-size: .82rem; font-weight: 700; color: #0F172A; margin-bottom: .5rem;}
+
+      .sug {padding: .55rem 0; border-bottom: 1px solid #F1F5F9; color: #334155; font-size: .93rem;}
+      .sug:last-child {border-bottom: 0;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -76,43 +78,42 @@ st.markdown(
 # --------------------------------------------------------------------------- #
 # Helpers
 # --------------------------------------------------------------------------- #
-def render_chips(items, kind):
+def tags_html(items, kind: str) -> str:
     if not items:
-        st.markdown('<span class="muted">None found.</span>', unsafe_allow_html=True)
-        return
-    html = "".join(f'<span class="chip chip-{kind}">{escape(str(i))}</span>' for i in items)
-    st.markdown(html, unsafe_allow_html=True)
+        return '<span class="muted">None found.</span>'
+    return "".join(f'<span class="tag tag-{kind}">{escape(str(i))}</span>' for i in items)
 
 
 def score_meta(score: float):
     """Return (label, color) for a 0-100 match score."""
     if score >= 70:
-        return "Strong match", "#1E7B44"
+        return "Strong match", "#15803D"
     if score >= 40:
-        return "Moderate match", "#B9770B"
-    return "Weak match", "#C0322B"
+        return "Moderate match", "#B45309"
+    return "Weak match", "#B91C1C"
 
 
 # --------------------------------------------------------------------------- #
 # Sidebar
 # --------------------------------------------------------------------------- #
 with st.sidebar:
-    st.markdown("### 📄 Resume Analyzer")
+    st.markdown("**Resume Analyzer**")
     st.markdown(
-        "Extract skills & entities from a resume and semantically match it "
-        "against a job description."
+        '<span class="muted">Skill extraction, named-entity recognition, and '
+        "semantic job matching for resumes.</span>",
+        unsafe_allow_html=True,
     )
     st.divider()
-    st.markdown("#### How it works")
+    st.markdown('<div class="label">Methodology</div>', unsafe_allow_html=True)
     st.markdown(
-        "- **Skills** — spaCy `PhraseMatcher`\n"
-        "- **Entities** — spaCy NER (people / orgs / dates)\n"
-        "- **Job match** — sentence-transformer embeddings + cosine similarity\n"
-        "- **Feedback** — rule-based suggestions"
+        "- **Skills** — spaCy PhraseMatcher\n"
+        "- **Entities** — spaCy named-entity recognition\n"
+        "- **Job match** — sentence-transformer embeddings, cosine similarity\n"
+        "- **Feedback** — rule-based checks"
     )
     st.divider()
-    st.caption("Built with FastAPI · spaCy · sentence-transformers · Streamlit")
-    st.link_button("⭐ View source on GitHub", "https://github.com/mahim83/resume-analyzer")
+    st.caption("FastAPI · spaCy · sentence-transformers · Streamlit")
+    st.link_button("View source on GitHub", "https://github.com/mahim83/resume-analyzer")
 
 
 # --------------------------------------------------------------------------- #
@@ -120,11 +121,11 @@ with st.sidebar:
 # --------------------------------------------------------------------------- #
 st.markdown(
     """
-    <div class="hero">
-      <h1>📄 Resume Analyzer</h1>
-      <p>Upload a resume to extract skills and key details. Add a job description
-      to get a semantic match score and see exactly which required skills you're
-      missing — powered by NLP.</p>
+    <div class="app-header">
+      <div class="eyebrow">NLP Resume Analysis</div>
+      <h1>Resume Analyzer</h1>
+      <p>Extract skills and key entities from a resume, and measure how closely
+      it matches a job description — with the specific skills it's missing.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -136,27 +137,31 @@ st.markdown(
 # --------------------------------------------------------------------------- #
 left, right = st.columns([1, 1], gap="large")
 with left:
-    st.markdown("#### 1&nbsp;&nbsp;Upload your resume")
-    uploaded_file = st.file_uploader("PDF or DOCX", type=["pdf", "docx"], label_visibility="collapsed")
+    st.markdown('<div class="label">Resume &nbsp;·&nbsp; PDF or DOCX</div>', unsafe_allow_html=True)
+    uploaded_file = st.file_uploader("Resume", type=["pdf", "docx"], label_visibility="collapsed")
 with right:
-    st.markdown("#### 2&nbsp;&nbsp;Paste a job description *(optional)*")
+    st.markdown('<div class="label">Job description &nbsp;·&nbsp; optional</div>', unsafe_allow_html=True)
     jd_text = st.text_area(
         "Job description",
-        height=150,
-        placeholder="Paste a job description to compute a match score and find missing skills...",
+        height=138,
+        placeholder="Paste a job description to compute a match score and identify missing skills…",
         label_visibility="collapsed",
     )
 
-analyze = st.button("🔍  Analyze Resume", type="primary", use_container_width=True)
+analyze = st.button("Analyze resume", type="primary")
 
-st.divider()
+st.markdown("<div style='margin:.4rem 0 1.2rem'></div>", unsafe_allow_html=True)
 
 
 # --------------------------------------------------------------------------- #
 # Results
 # --------------------------------------------------------------------------- #
 if not analyze:
-    st.info("👆 Upload a resume and click **Analyze** to see extracted skills, entities, a job-match score, and suggestions.")
+    st.markdown(
+        '<span class="muted">Upload a resume and select <b>Analyze resume</b> to '
+        "view extracted skills, entities, a job-match score, and suggestions.</span>",
+        unsafe_allow_html=True,
+    )
     st.stop()
 
 if uploaded_file is None:
@@ -171,7 +176,7 @@ except ValueError as exc:
     st.stop()
 
 # --- Skills + entities ---
-with st.spinner("Extracting skills and entities..."):
+with st.spinner("Extracting skills and entities…"):
     extracted = extract_skills_and_entities(text)
 skills = extracted["skills"]
 entities = extracted["entities"]
@@ -180,62 +185,76 @@ entities = extracted["entities"]
 score = None
 missing = []
 if jd_text.strip():
-    with st.spinner("Computing semantic match score..."):
+    with st.spinner("Computing semantic match score…"):
         score = match_score(text, jd_text)
         missing = missing_skills(skills, jd_text)
 
 # --- Summary metrics ---
 m1, m2, m3 = st.columns(3)
-m1.metric("🧠 Skills found", len(skills))
-m2.metric("🏷️ Entities", sum(len(v) for v in entities.values()))
-m3.metric("🎯 Match score", f"{score}%" if score is not None else "—")
+m1.metric("Skills found", len(skills))
+m2.metric("Entities detected", sum(len(v) for v in entities.values()))
+m3.metric("Match score", f"{score}%" if score is not None else "—")
+
+st.markdown("<div style='margin:.5rem 0'></div>", unsafe_allow_html=True)
 
 # --- Match score card ---
 if score is not None:
     label, color = score_meta(score)
+    width = max(min(score, 100), 2)
     st.markdown(
         f"""
         <div class="card">
-          <h4>Job Match Score &nbsp;·&nbsp; <span style="color:{color}">{label}</span></h4>
-          <div style="font-size:2rem;font-weight:800;color:{color};line-height:1">{score}%</div>
-          <div class="score-wrap"><div class="score-bar" style="width:{max(min(score,100),2)}%;
-               background:linear-gradient(90deg,{color},{color}CC)"></div></div>
-          <span class="muted">Semantic similarity between your resume and the job description.</span>
+          <div class="label">Job Match Score</div>
+          <div style="display:flex; align-items:baseline; gap:.7rem;">
+            <span style="font-size:2rem; font-weight:700; color:{color}; line-height:1">{score}%</span>
+            <span style="color:{color}; font-weight:600; font-size:.95rem">{label}</span>
+          </div>
+          <div class="meter"><div style="width:{width}%; background:{color}"></div></div>
+          <span class="muted">Semantic similarity between the resume and the job description.</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-# --- Skills + missing side by side ---
+# --- Skills + missing ---
 c1, c2 = st.columns(2, gap="large")
 with c1:
-    st.markdown('<div class="card"><h4>✅ Skills Found</h4>', unsafe_allow_html=True)
-    render_chips(skills, "skill")
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="card"><div class="label">Skills Found</div>{tags_html(skills, "skill")}</div>',
+        unsafe_allow_html=True,
+    )
 with c2:
-    st.markdown('<div class="card"><h4>⚠️ Missing Skills (from the job description)</h4>', unsafe_allow_html=True)
-    if jd_text.strip():
-        render_chips(missing, "missing")
-    else:
-        st.markdown('<span class="muted">Add a job description to see missing skills.</span>', unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    body = tags_html(missing, "missing") if jd_text.strip() else \
+        '<span class="muted">Add a job description to identify missing skills.</span>'
+    st.markdown(
+        f'<div class="card"><div class="label">Missing Skills</div>{body}</div>',
+        unsafe_allow_html=True,
+    )
 
 # --- Entities ---
 if any(entities.values()):
-    st.markdown('<div class="card"><h4>🏷️ Extracted Entities</h4>', unsafe_allow_html=True)
-    e1, e2, e3 = st.columns(3)
-    labels = {"PERSON": "👤 People", "ORG": "🏢 Organizations", "DATE": "📅 Dates"}
-    for col, key in zip((e1, e2, e3), ("PERSON", "ORG", "DATE")):
-        with col:
-            st.markdown(f"**{labels[key]}**")
-            render_chips(entities.get(key, []), "entity")
-    st.markdown("</div>", unsafe_allow_html=True)
+    groups = [("People", "PERSON"), ("Organizations", "ORG"), ("Dates", "DATE")]
+    cells = "".join(
+        f'<div><div class="ent-h">{name}</div>{tags_html(entities.get(key, []), "entity")}</div>'
+        for name, key in groups
+    )
+    st.markdown(
+        f'<div class="card"><div class="label">Extracted Entities</div>'
+        f'<div class="ent-grid">{cells}</div></div>',
+        unsafe_allow_html=True,
+    )
 
 # --- Suggestions ---
 suggestions = generate_suggestions(text)
-st.markdown('<div class="card"><h4>💡 Suggestions</h4></div>', unsafe_allow_html=True)
 if suggestions:
-    for tip in suggestions:
-        st.warning(tip)
+    rows = "".join(f'<div class="sug">{escape(tip)}</div>' for tip in suggestions)
+    st.markdown(
+        f'<div class="card"><div class="label">Suggestions</div>{rows}</div>',
+        unsafe_allow_html=True,
+    )
 else:
-    st.success("Your resume passed all the basic checks. ✅")
+    st.markdown(
+        '<div class="card"><div class="label">Suggestions</div>'
+        '<span style="color:#15803D; font-weight:600;">Resume passed all basic checks.</span></div>',
+        unsafe_allow_html=True,
+    )
