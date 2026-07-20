@@ -1,0 +1,11 @@
+# Render blueprint. Push this repo to GitHub, then in Render choose
+# "New +" -> "Blueprint" and point it at the repo, or create a Web Service
+# manually with environment = Docker (the Dockerfile is auto-detected).
+services:
+  - type: web
+    name: resume-analyzer-api
+    runtime: docker
+    plan: free            # 512MB RAM ceiling; see README notes if it OOMs.
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    autoDeploy: true

@@ -1,0 +1,76 @@
+[
+  "python", "java", "javascript", "typescript", "c", "c++", "c#", "go", "golang",
+  "rust", "ruby", "php", "swift", "kotlin", "scala", "r", "matlab", "perl",
+  "objective-c", "dart", "elixir", "haskell", "clojure", "lua", "groovy", "bash",
+  "shell scripting", "powershell", "sql", "pl/sql", "t-sql", "assembly", "vba",
+  "solidity", "julia", "cobol", "fortran",
+
+  "html", "css", "sass", "scss", "less", "tailwind css", "bootstrap",
+  "react", "react native", "angular", "vue", "vue.js", "svelte", "next.js",
+  "nuxt.js", "gatsby", "jquery", "redux", "ember.js", "backbone.js", "webpack",
+  "babel", "vite", "three.js", "d3.js", "material ui", "chakra ui", "storybook",
+
+  "node.js", "express", "express.js", "django", "flask", "fastapi", "spring",
+  "spring boot", "hibernate", "ruby on rails", "rails", "laravel", "symfony",
+  "asp.net", ".net", ".net core", "nestjs", "phoenix", "gin", "fiber",
+  "graphql", "rest api", "restful api", "grpc", "soap", "websocket", "micronaut",
+  "quarkus", "ktor",
+
+  "mysql", "postgresql", "postgres", "sqlite", "microsoft sql server",
+  "oracle database", "mongodb", "cassandra", "redis", "elasticsearch",
+  "dynamodb", "couchbase", "neo4j", "mariadb", "firebase", "firestore",
+  "cosmos db", "snowflake", "bigquery", "redshift", "influxdb", "memcached",
+  "supabase", "cockroachdb",
+
+  "aws", "amazon web services", "azure", "microsoft azure", "gcp",
+  "google cloud platform", "google cloud", "heroku", "digitalocean", "netlify",
+  "vercel", "cloudflare", "linode", "render", "railway",
+  "ec2", "s3", "lambda", "rds", "cloudfront", "route 53", "eks", "ecs",
+  "azure functions", "app engine", "cloud run",
+
+  "docker", "kubernetes", "k8s", "terraform", "ansible", "puppet", "chef",
+  "jenkins", "gitlab ci", "github actions", "circleci", "travis ci", "argocd",
+  "helm", "vagrant", "prometheus", "grafana", "datadog", "new relic", "splunk",
+  "elk stack", "nginx", "apache", "istio", "consul", "vault", "packer",
+  "cloudformation", "pulumi", "ci/cd", "devops", "sre",
+
+  "git", "github", "gitlab", "bitbucket", "svn", "mercurial", "jira",
+  "confluence", "trello", "asana", "notion", "slack", "postman", "swagger",
+  "figma", "sketch", "adobe xd", "linux", "unix", "ubuntu", "windows", "macos",
+  "vim", "vs code", "intellij", "eclipse", "jupyter", "anaconda",
+
+  "machine learning", "deep learning", "artificial intelligence", "nlp",
+  "natural language processing", "computer vision", "data science",
+  "data analysis", "data engineering", "data mining", "data visualization",
+  "big data", "predictive modeling", "statistical analysis", "a/b testing",
+  "feature engineering", "reinforcement learning", "generative ai", "llm",
+  "large language models", "mlops", "recommendation systems",
+
+  "tensorflow", "pytorch", "keras", "scikit-learn", "sklearn", "pandas",
+  "numpy", "scipy", "matplotlib", "seaborn", "plotly", "opencv", "spacy",
+  "nltk", "hugging face", "transformers", "xgboost", "lightgbm", "catboost",
+  "apache spark", "spark", "hadoop", "kafka", "airflow", "dbt", "databricks",
+  "tableau", "power bi", "looker", "sas", "stata", "excel", "google analytics",
+  "langchain", "openai api", "streamlit", "gradio",
+
+  "android", "ios", "flutter", "xamarin", "ionic", "cordova", "unity",
+  "unreal engine", "arkit", "arcore",
+
+  "agile", "scrum", "kanban", "waterfall", "tdd", "bdd", "pair programming",
+  "microservices", "system design", "object-oriented programming", "oop",
+  "functional programming", "design patterns", "data structures", "algorithms",
+  "distributed systems", "api design", "unit testing", "integration testing",
+  "selenium", "cypress", "jest", "pytest", "junit", "mocha", "playwright",
+
+  "cybersecurity", "penetration testing", "network security", "cryptography",
+  "owasp", "siem", "firewalls", "ethical hacking", "incident response",
+  "vulnerability assessment",
+
+  "communication", "leadership", "teamwork", "problem solving",
+  "critical thinking", "time management", "adaptability", "creativity",
+  "collaboration", "project management", "presentation", "mentoring",
+  "negotiation", "conflict resolution", "decision making", "analytical skills",
+  "attention to detail", "customer service", "stakeholder management",
+  "strategic planning", "public speaking", "emotional intelligence",
+  "organization", "work ethic", "self-motivation"
+]

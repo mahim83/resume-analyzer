@@ -1,0 +1,5 @@
+# Dev/test dependencies (install alongside requirements.txt to run the suite):
+#   pip install -r requirements.txt -r requirements-dev.txt
+#   pytest
+pytest
+httpx          # required by fastapi.testclient / starlette TestClient

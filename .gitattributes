@@ -1,0 +1,6 @@
+# Let git normalize line endings for text files, and never touch binaries.
+* text=auto
+
+# Binary fixtures must never be line-ending converted.
+*.pdf  binary
+*.docx binary
