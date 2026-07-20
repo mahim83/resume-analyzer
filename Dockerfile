@@ -6,9 +6,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download models at build time so container startup needs no network and
-# the first request is fast (no cold-start model download).
-RUN python -m spacy download en_core_web_sm
+# The spaCy model is installed via requirements.txt (wheel). Pre-download the
+# sentence-transformer at build time so container startup needs no network and
+# the first match request is fast (no cold-start model download).
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
 COPY app ./app

@@ -117,14 +117,21 @@ without network access and the first request is fast.
 
 ## Deploy
 
-**Backend (Render, Docker):** push to GitHub → New Web Service → environment
-*Docker* (the `Dockerfile` / `render.yaml` blueprint are auto-detected). The
-free tier caps at **512MB RAM**; if the container OOMs, the sentence-transformer
-is the likely culprit — switch `matcher.py` to load the model lazily on first
-request instead of at import (trade-off: a slow first request).
+There are two deployment modes:
 
-**Frontend (Streamlit Community Cloud or Render):** deploy `frontend/app.py`
-with `BACKEND_URL` set to the deployed backend URL.
+**A. Single service (recommended for a free live demo).** `streamlit_app.py`
+runs the whole pipeline **in-process** (no separate backend), so it deploys as
+one app on **Streamlit Community Cloud** (free, ~1GB RAM — enough for the
+sentence-transformer). Point it at this repo with `streamlit_app.py` as the
+main file; the spaCy model installs via `requirements.txt`.
+
+**B. Two-tier (microservice).** FastAPI backend + Streamlit frontend as separate
+services:
+- *Backend:* Docker image (`Dockerfile` / `render.yaml`) on any container host.
+  Note the sentence-transformer is memory-heavy — it's lazy-loaded so startup
+  stays light, but the JD-match request needs enough RAM (a 512MB free tier is
+  too small; use a host with ≥1GB, e.g. Hugging Face Spaces).
+- *Frontend:* deploy `frontend/app.py` with `BACKEND_URL` set to the backend URL.
 
 ## Project layout
 
@@ -138,7 +145,8 @@ app/
   models.py        Pydantic response models
   skills_list.json ~250 skill terms
 frontend/
-  app.py           Streamlit UI
+  app.py           Streamlit UI (calls the FastAPI backend over HTTP)
+streamlit_app.py   Standalone Streamlit UI (runs the pipeline in-process)
 Dockerfile
 render.yaml
 requirements.txt

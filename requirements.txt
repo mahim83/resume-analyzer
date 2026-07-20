@@ -8,3 +8,8 @@ sentence-transformers
 streamlit
 requests
 pydantic
+
+# spaCy English model, installed as a wheel so hosts that only run
+# `pip install -r requirements.txt` (e.g. Streamlit Community Cloud) get it
+# without a separate `python -m spacy download` step.
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
